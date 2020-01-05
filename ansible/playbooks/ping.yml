@@ -1,0 +1,10 @@
+---
+- name: Ping for fresh PIs
+  hosts: init-setup-required
+  tasks:
+    - ping:
+
+- name: Ping for initially setup PIs
+  hosts: post-init-setup
+  tasks:
+    - ping:
