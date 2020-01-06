@@ -11,12 +11,16 @@
 
   vars:
     desired_timezone: "US/Eastern"
+    # locale values can be found in /usr/share/i18n/SUPPORTED
     desired_iso_country: "US"
+    desired_keyboard_layout: "en"
+    desired_language: "en"
+    desired_encoding: "UTF-8"
+    desired_locale: "en_US"
+    desired_locale_short: "{{ desired_locale.split()[0] }}"
 
   tasks:
-    - name: Sets the timezone
-      timezone:
-        name: "{{ desired_timezone }}"
+    - debug: var=desired_locale_short
     - name: Check if we need to resize FS
       stat:
         path: /etc/init.d/resize2fs_once
@@ -27,6 +31,31 @@
       when: file_created_by_expand_rootfs.stat.exists == false
       notify:
         - reboot
+
+    - name: Sets the timezone
+      timezone:
+        name: "{{ desired_timezone }}"
+
+    - name: Unsets default GB locale
+      become: true
+      replace:
+        path: /etc/locale.gen
+        regexp: "^en_GB.UTF-8 UTF-8"
+        replace: "# en_GB.UTF-8 UTF-8"
+    - name: Sets target locale to generate locale files from
+      become: true
+      replace:
+        path: /etc/locale.gen
+        regexp: '# {{ desired_locale }}.{{ desired_encoding }} {{ desired_encoding }}'
+        replace: "{{ desired_locale }}"
+    - name: Sets the default locale
+      become: true
+      blockinfile:
+        path: /etc/default/locale
+        block: |
+          LANG="{{ desired_locale }}.{{ desired_encoding }}"
+          LANGUAGE="{{ desired_locale }}:{{ desired_language  }}"
+
     - name: Update WPA config with ISO country code
       become: true
       lineinfile:
@@ -54,3 +83,4 @@
       wait_for_connection:
         delay: 5
         timeout: 300
+
