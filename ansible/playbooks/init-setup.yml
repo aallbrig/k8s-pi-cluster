@@ -83,6 +83,22 @@
         line: cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory
       notify: reboot
 
+    - name: Update DHCPCD to assign static IP on eth0 and wan0
+      become: true
+      blockinfile:
+        path: /etc/dhcpcd.conf
+        block: |
+          interface eth0
+          static ip_address={{ first_3_octets }}.{{ last_octet }}/24
+          static routers={{ first_3_octets  }}.1
+          static domain_name_servers=8.8.8.8
+
+          interface wlan0
+          static ip_address={{ first_3_octets }}.{{ last_octet }}/24
+          static routers={{ first_3_octets  }}.1
+          static domain_name_servers=8.8.8.8
+      notify: reboot
+
     - name: Update WPA config with ISO country code
       become: true
       lineinfile:
