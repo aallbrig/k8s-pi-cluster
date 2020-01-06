@@ -20,7 +20,6 @@
     desired_locale_short: "{{ desired_locale.split()[0] }}"
 
   tasks:
-    - debug: var=desired_locale_short
     - name: Check if we need to resize FS
       stat:
         path: /etc/init.d/resize2fs_once
@@ -55,6 +54,20 @@
         block: |
           LANG="{{ desired_locale }}.{{ desired_encoding }}"
           LANGUAGE="{{ desired_locale }}:{{ desired_language  }}"
+
+    - name: Check if swap needs to be disabled
+      become: true
+      shell: swapon --summary
+      register: swap_check
+    - name: Disables swap
+      become: true
+      shell: "{{ item }}"
+      with_items:
+        - dphys-swapfile swapoff
+        - dphys-swapfile uninstall
+        - update-rc.d dphys-swapfile remove
+        - apt purge dphys-swapfile
+      when: swap_check.stdout != ""
 
     - name: Update WPA config with ISO country code
       become: true
