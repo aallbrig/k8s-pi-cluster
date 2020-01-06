@@ -1,10 +1,56 @@
 ---
 - name: Initial setup of raspberry pis
   hosts: init-setup-required
-  become: true
-  roles:
-    - role: mikolak-net.raspi_config
-      raspi_config_update_packages: yes
-      raspi_config_expanded_filesystem: yes
-      raspi_config_locale: en_US.UTF-8
-      raspi_config_timezone: US/Eastern
+
+  vars_prompt:
+    - name: network_ssid
+      prompt: "What is the wifi network name (SSID)?"
+      private: no
+    - name: network_psk
+      prompt: "What is the wifi network password (PSK)?"
+
+  vars:
+    desired_timezone: "US/Eastern"
+    desired_iso_country: "US"
+
+  tasks:
+    - name: Sets the timezone
+      timezone:
+        name: "{{ desired_timezone }}"
+    - name: Check if we need to resize FS
+      stat:
+        path: /etc/init.d/resize2fs_once
+      register: file_created_by_expand_rootfs
+    - name: Ensures root FS is resized
+      become: true
+      command: raspi-config --expand-rootfs
+      when: file_created_by_expand_rootfs.stat.exists == false
+      notify:
+        - reboot
+    - name: Update WPA config with ISO country code
+      become: true
+      lineinfile:
+        path: /etc/wpa_supplicant/wpa_supplicant.conf
+        regexp: '^country='
+        line: "country={{ desired_iso_country }}"
+    - name: Setup pi onto target network
+      become: true
+      blockinfile:
+        path: /etc/wpa_supplicant/wpa_supplicant.conf
+        block: |
+          network={
+            ssid="{{ network_ssid }}"
+            psk="{{ network_psk }}"
+          }
+
+  handlers:
+    - name: reboot
+      shell: "sleep 1 && shutdown -r now +1"
+      async: 1
+      poll: 0
+      notify:
+        - wait for reboot
+    - name: wait for reboot
+      wait_for_connection:
+        delay: 5
+        timeout: 300
