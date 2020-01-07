@@ -1,0 +1,46 @@
+---
+- name: k3s setup
+  hosts: masters
+
+  tasks:
+    - name: test ping
+      ping:
+    - name: Check if we need to install k3s
+      become: true
+      stat:
+        path: /var/lib/rancher/k3s/server/node-token
+      register: out_node_token_file
+    - name: Install k3s
+      block:
+        - name: Install k8s via shell method
+          shell: curl -sfL https://get.k3s.io | sh -s - --write-kubeconfig-mode 644
+      when: out_node_token_file.stat.exists != true
+    - name: Get node token
+      become: true
+      shell: cat /var/lib/rancher/k3s/server/node-token
+      register: out_node_token
+    - name: output node token
+      debug: var=out_node_token.stdout
+
+- name: Configure workers
+  hosts: workers
+
+  vars_prompt:
+    - name: k3s_url
+      prompt: What is the URL of the master node of k3s (e.g. https://myserver:6443)?
+      private: false
+    - name: k3s_token
+      prompt: What is the token from the master node of k3s?
+
+  tasks:
+    - debug: var=k3s_token
+    - debug: var=k3s_url
+    - name: Check if k3s needs to be installed
+      stat:
+        path: /usr/local/bin/k3s-uninstall.sh
+      register: uninstall_script_stat
+    - name: Install k3s for workers, if required
+      block:
+        - name: Install k3s for workers
+          shell: "curl -sfL https://get.k3s.io | K3S_URL={{ k3s_url }} K3S_TOKEN={{ k3s_token }} sh -"
+      when: uninstall_script_stat.stat.exists != true

@@ -1,0 +1,49 @@
+---
+- name: Diagnostics
+  hosts: all
+
+  tasks:
+    - name: pi model
+      shell: cat /proc/device-tree/model
+      register: out_pi_model
+    - name: RAM info
+      shell: free -m
+      register: out_ram
+    - name: disk
+      shell: df -h
+      register: out_disk
+    - name: hostname
+      shell: cat /etc/hostname
+      register: out_hostname
+    - name: hosts file
+      shell: cat /etc/hosts
+      register: out_hosts
+    - name: timezone
+      shell: cat /etc/timezone
+      register: out_timezone
+    - name: default locale
+      shell: cat /etc/default/locale
+      register: out_default_locale
+    - name: locale.gen file contents
+      shell: cat /etc/locale.gen | grep '^\w'
+      register: out_locale_gen
+    - name: boot cmd line
+      shell: cat /boot/cmdline.txt
+      register: out_boot_cmdline
+    - name: dhcpcd configuration
+      shell: cat /etc/dhcpcd.conf | tail -n 10
+      register: out_dhcpcd
+    - name: Output diagnostic info
+      debug:
+        msg:
+          - "pi model: {{ out_pi_model.stdout }}"
+          - "RAM info: {{ out_ram.stdout }}"
+          - "Disk: {{ out_disk.stdout }}"
+          - "Hostname: {{ out_hostname.stdout }}"
+          - "Hosts file: {{ out_hosts.stdout }}"
+          - "Timezone: {{ out_timezone.stdout }}"
+          - "Default locale: {{ out_default_locale.stdout }}"
+          - "Local.gen contents: {{ out_locale_gen.stdout }}"
+          - "Boot cmd line contents: {{ out_boot_cmdline.stdout }}"
+          - "dhcpcd configuration: {{ out_dhcpcd.stdout }}"
+

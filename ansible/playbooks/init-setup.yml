@@ -1,6 +1,6 @@
 ---
-- name: Initial setup of raspberry pis
-  hosts: init-setup-required
+- name: Initial setup of raspberry pi
+  hosts: setup-required
 
   vars_prompt:
     - name: network_ssid
@@ -17,48 +17,82 @@
     desired_language: "en"
     desired_encoding: "UTF-8"
     desired_locale: "en_US"
+    desired_locale_full: "{{ desired_locale  }}.{{ desired_encoding  }} {{ desired_encoding  }}"
     desired_locale_short: "{{ desired_locale.split()[0] }}"
 
   tasks:
     - name: Check if we need to resize FS
       stat:
         path: /etc/init.d/resize2fs_once
-      register: file_created_by_expand_rootfs
-    - name: Ensures root FS is resized
-      become: true
-      command: raspi-config --expand-rootfs
-      notify:
-        - reboot
-      when: file_created_by_expand_rootfs.stat.exists == false
+      register: created_file_from_expand_rootfs
+    - name: Resize root FS
+      block:
+        - name: see stat of variable
+          debug: var=created_file_from_expand_rootfs.stat
+        - name: Ensures root FS is resized
+          become: true
+          command: raspi-config --expand-rootfs
+          notify:
+            - reboot
+        - name: Check if the file exists after raspi-config proc
+          stat:
+            path: /etc/init.d/resize2fs_once
+          register: out_file_created
+        - name: Out file should now be crated
+          debug: var=out_file_created.stat
+        - meta: flush_handlers
+      when: created_file_from_expand_rootfs.stat.exists != true
 
-    - name: Sets the timezone
+    - name: Check if host name needs to be updated
+      shell: cat /etc/hostname
+      register: out_hostname
+    - name: Sets host name to desired host name
+      block:
+        - name: Current hostname
+          debug: var=out_hostname
+        - name: Replaces current host name with desired host name
+          become: true
+          shell: "echo {{ desired_hostname }} > /etc/hostname"
+        - name: Update hosts file to link 127.0.1.1 to the desired host name
+          become: true
+          replace:
+            path: /etc/hosts
+            regexp: "^127.0.1.1.*{{ out_hostname.stdout }}"
+            replace: "127.0.1.1\t{{ desired_hostname }}"
+      when: out_hostname.stdout != desired_hostname
+
+
+    - name: Sets desired timezone
+      become: true
       timezone:
         name: "{{ desired_timezone }}"
 
-    - name: Unsets default GB locale
-      become: true
-      replace:
-        path: /etc/locale.gen
-        regexp: "^en_GB.UTF-8 UTF-8"
-        replace: "# en_GB.UTF-8 UTF-8"
-    - name: Sets target locale to generate locale files from
-      become: true
-      replace:
-        path: /etc/locale.gen
-        regexp: '# {{ desired_locale }}.{{ desired_encoding }} {{ desired_encoding }}'
-        replace: "{{ desired_locale }}"
-      register: local_gen_config
-    - name: Regenerates locale files
-      become: true
-      shell: dpkg-reconfigure -f noninteractive locales
-      when: local_gen_config.changed
-    - name: Sets the default locale
-      become: true
-      blockinfile:
-        path: /etc/default/locale
-        block: |
-          LANG="{{ desired_locale }}.{{ desired_encoding }}"
-          LANGUAGE="{{ desired_locale }}:{{ desired_language  }}"
+    - name: Locales
+      block:
+        - name: Unsets default GB locale
+          become: true
+          replace:
+            path: /etc/locale.gen
+            regexp: "^en_GB.UTF-8 UTF-8"
+            replace: "# en_GB.UTF-8 UTF-8"
+        - name: Sets target locale to generate locale files from
+          become: true
+          replace:
+            path: /etc/locale.gen
+            regexp: '# {{ desired_locale_full  }}'
+            replace: "{{ desired_locale_full }}"
+          register: local_gen_config
+        - name: Regenerates locale files
+          become: true
+          shell: dpkg-reconfigure -f noninteractive locales
+          when: local_gen_config.changed
+        - name: Sets the default locale
+          become: true
+          blockinfile:
+            path: /etc/default/locale
+            block: |
+              LANG={{ desired_locale }}.{{ desired_encoding }}
+              LANGUAGE={{ desired_locale }}:{{ desired_language  }}
 
     - name: Check if swap needs to be disabled
       become: true
@@ -66,14 +100,14 @@
       register: swap_check
     - name: Disables swap
       become: true
-      shell: "{{ item }}"
-      with_items:
-        - dphys-swapfile swapoff
-        - dphys-swapfile uninstall
-        - update-rc.d dphys-swapfile remove
-        - apt purge dphys-swapfile
-      notify: reboot
       when: swap_check.stdout != ""
+      block:
+        - name: swapoff
+          shell: dphys-swapfile swapoff
+        - name: uninstall
+          shell: dphys-swapfile uninstall
+        - name: swapfile remove
+          shell: update-rc.d dphys-swapfile remove
 
     - name: Configures c group options
       become: true
@@ -97,7 +131,6 @@
           static ip_address={{ first_3_octets }}.{{ last_octet }}/24
           static routers={{ first_3_octets  }}.1
           static domain_name_servers=8.8.8.8
-      notify: reboot
 
     - name: Update WPA config with ISO country code
       become: true
@@ -115,8 +148,13 @@
             psk="{{ network_psk }}"
           }
 
+    - name: Last reboot
+      become: true
+      shell: "sleep 1 && shutdown -r now + 1"
+
   handlers:
     - name: reboot
+      become: true
       shell: "sleep 1 && shutdown -r now +1"
       async: 1
       poll: 0
