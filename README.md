@@ -2,6 +2,7 @@ Commands run during the kubernetes (k8s) raspberry pi (pi) cluster setup.
 
 This setup guide is based on this medium article: https://medium.com/nycdev/k8s-on-pi-9cc14843d43
 
+### Setup SD card
 1. Download *Raspbian Lite* from the [Raspbian download page](https://www.raspberrypi.org/downloads/raspbian/)
 1. Download *Balena Etcher* (_etcher_) from either it's [web page](https://www.balena.io/etcher/) or from your package manager of choice (e.g. brew install balenaetcher)
 1. Start etcher, select Raspbian Lite as the image to flash. Plug in a target SD card and flash with Raspbian Lite. Repeat for each SD card you want to flash.
@@ -12,12 +13,14 @@ This setup guide is based on this medium article: https://medium.com/nycdev/k8s-
     `cd /d/ && touch ssh && ls -la | grep "ssh" && cd /c/`
 1. Install the SD cards and wire up your pis (ethernet cable, power).
 1. Find the IP address assigned to your pi by your router (via DHCP), perhaps using your router's admin page?
+
+### Initial Setup
 1. SSH into pi(s).
-1. Get raspberry pi model and it's RAM count
+1. (optional) Output raspberry pi model and it's RAM count
     ```
     cat /proc/device-tree/model && echo && free -m
     ```
-1. Verify that swap is enabled
+1. (optional) Verify that swap is enabled
     ```
     sudo swapon --summary
     ```
