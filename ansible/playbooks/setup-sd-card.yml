@@ -1,0 +1,16 @@
+---
+- name: Setup SD Card
+  hosts: localhost
+
+  tasks:
+    - name: Touches a "ssh" file
+      local_action:
+        module: file
+        path: /Volumes/boot/ssh
+        state: touch
+    - name: Unmounts SD card
+      local_action:
+        module: shell
+        args: 
+          cmd: diskutil unmount boot
+
