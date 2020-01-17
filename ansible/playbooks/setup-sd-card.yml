@@ -1,16 +1,61 @@
 ---
-- name: Setup SD Card
+- name: Setup SD Card with Raspbian and SSH file
   hosts: localhost
 
   tasks:
+    - name: Checks if image has already been unzipped
+      local_action:
+        module: stat
+        args:
+          path: "{{ playbook_dir  }}/../files/2019-09-26-raspbian-buster-lite.img"
+      register: raspbian_lite_img
+    - name: Unzips Raspbian Lite archive
+      local_action:
+        module: shell
+        args:
+          cmd: "unzip {{ playbook_dir   }}/../files/2019-09-26-raspbian-buster-lite.zip -d {{ playbook_dir   }}/../files"
+      when: raspbian_lite_img.stat.exists == False
+    - name: Finds attached SD card
+      local_action:
+        module: shell
+        args:
+          cmd: "diskutil list external | head -n 1 | awk '{ print $1 }'"
+      register: sd_card
+    - debug: var=sd_card.stdout
+    - name: Unmounts automatically mounted SD card
+      local_action:
+        module: shell
+        args:
+          cmd: "diskutil unmountdisk {{ sd_card.stdout }}"
+    - debug: var=playbook_dir
+    - name: Flashes SD card with Raspbian (takes a long time! ~5-10 minutes)
+      become: true
+      local_action:
+        module: shell
+        args:
+          cmd: "dd if={{ playbook_dir }}/../files/2019-09-26-raspbian-buster-lite.img of={{ sd_card.stdout }} bs=2m"
+      async: 800
+      poll: 10
+    - name: Mounts the disk from flashed SD card
+      local_action:
+        module: shell
+        args:
+          cmd: "diskutil mountDisk {{ sd_card.stdout }}"
+    - name: Locates mounted disk
+      local_action:
+        module: shell
+        args:
+          cmd: "df -lH | grep '/Volumes/*' | awk '{ print $9  }'"
+      register: mounted_disk
+    - debug: var=mounted_disk
     - name: Touches a "ssh" file
       local_action:
         module: file
-        path: /Volumes/boot/ssh
+        path: "{{ mounted_disk.stdout }}/ssh"
         state: touch
     - name: Unmounts SD card
       local_action:
         module: shell
         args: 
-          cmd: diskutil unmount boot
+          cmd: "diskutil unmountDisk {{ sd_card.stdout }}"
 
