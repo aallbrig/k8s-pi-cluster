@@ -2,40 +2,49 @@
 - name: Setup SD Card with Raspbian and SSH file
   hosts: localhost
 
+  vars_prompt:
+  - name: image_file_location
+    prompt: "Absolute path of desired image to flash SD card with"
+    private: no
+
   tasks:
-    - name: Checks if image has already been unzipped
-      local_action:
-        module: stat
-        args:
-          path: "{{ playbook_dir  }}/../files/2019-09-26-raspbian-buster-lite.img"
-      register: raspbian_lite_img
-    - name: Unzips Raspbian Lite archive
-      local_action:
-        module: shell
-        args:
-          cmd: "unzip {{ playbook_dir   }}/../files/2019-09-26-raspbian-buster-lite.zip -d {{ playbook_dir   }}/../files"
-      when: raspbian_lite_img.stat.exists == False
+    - debug: var=image_file_location
     - name: Finds attached SD card
       local_action:
         module: shell
         args:
           cmd: "diskutil list external | head -n 1 | awk '{ print $1 }'"
       register: sd_card
-    - debug: var=sd_card.stdout
-    - name: Unmounts automatically mounted SD card
+    - debug: var=sd_card
+    - name: Locates mounted disk
+      local_action:
+        module: shell
+        args:
+          cmd: "df -lH | grep '/Volumes/*' | awk '{ print $9  }'"
+      register: mounted_disk
+    - debug: var=mounted_disk
+    - name: Checks for initial setup taint file
+      local_action:
+        module: stat
+        path: "{{ mounted_disk.stdout }}/new-car-smell"
+      register: taint_file_check
+    - debug: var=taint_file_check
+
+    - name: Unmounts automatically mounted SD card (levelset)
       local_action:
         module: shell
         args:
           cmd: "diskutil unmountdisk {{ sd_card.stdout }}"
-    - debug: var=playbook_dir
+
     - name: Flashes SD card with Raspbian (takes a long time! ~5-10 minutes)
       become: true
       local_action:
         module: shell
         args:
           cmd: "dd if={{ playbook_dir }}/../files/2019-09-26-raspbian-buster-lite.img of={{ sd_card.stdout }} bs=2m"
-      async: 800
+      async: 1600
       poll: 10
+      when: taint_file_check.stat.exists == false
     - name: Mounts the disk from flashed SD card
       local_action:
         module: shell
@@ -53,9 +62,20 @@
         module: file
         path: "{{ mounted_disk.stdout }}/ssh"
         state: touch
+    - name: Creates taint file
+      local_action:
+        module: file
+        path: "{{ mounted_disk.stdout  }}/new-car-smell"
+        state: touch
     - name: Unmounts SD card
       local_action:
         module: shell
-        args: 
+        args:
           cmd: "diskutil unmountDisk {{ sd_card.stdout }}"
+    - name: Notifies playbook user that SD card setup is complete
+      local_action:
+        module: say
+        args:
+          msg: Setup of the S D card has been completed. S D card unmounted. Enjoy!
+          voice: Zarvox
 
