@@ -1,6 +1,7 @@
 Commands run during the kubernetes (k8s) raspberry pi (pi) cluster setup.
 
 ### Setup SD card
+---
 Ansible Playbook
 * Download *Raspbian Lite* from the [Raspbian download page](https://www.raspberrypi.org/downloads/raspbian/)
 * execute `ansible-playbook ./ansible/playbooks/setup-sd-card.yml -K -e '{"image_file_location": "/Users/aallbrig/dev/k8s-pi-cluster/ansible/files/2019-09-26-raspbian-buster-lite.img"}'`
@@ -17,7 +18,7 @@ Manual
 1. Install the SD cards and wire up your pis (ethernet cable, power).
 1. Find the IP address assigned to your pi by your router (via DHCP), perhaps using your router's admin page?
 
-### Initial Setup
+### Initial Setup of Pi
 ---
 Ansible Playbook
 * execute `ansible-playbook ./ansible/playbooks/init-setup.yml -e '{"network_ssid": "$TARGET_SSID", "network_psk": "$TARGET_PSK"}' --ask-pass`
