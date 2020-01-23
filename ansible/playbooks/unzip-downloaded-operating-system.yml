@@ -1,0 +1,28 @@
+---
+- name: Unzips downloaded operating system (e.g. Raspbian Lite)
+  hosts: localhost
+
+  vars_prompt:
+  - name: zip_location
+    prompt: What is the absolute path of the ZIP file
+    private: no
+    default: "~/Downloads/2019-09-26-raspbian-buster-lite.zip"
+  - name: desired_image_file_location
+    prompt:
+    private: no
+    default: "{{ playbook_dir  }}/../files/2019-09-26-raspbian-buster-lite.img"
+
+  tasks:
+    - name: Checks if image has already been unzipped
+      local_action:
+        module: stat
+        args:
+          path: "{{ desired_image_file_location }}"
+      register: raspbian_lite_img
+    - name: Unzips Raspbian Lite archive
+      local_action:
+        module: shell
+        args:
+          cmd: "unzip {{ zip_location }} -d {{ playbook_dir   }}/../files"
+      when: raspbian_lite_img.stat.exists == false
+
