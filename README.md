@@ -42,4 +42,4 @@ This setup guide is based on this medium article: https://medium.com/nycdev/k8s-
     sudo dphys-swapfile uninstall && \
     sudo update-rc.d dphys-swapfile remove
     ```
-1.
+
