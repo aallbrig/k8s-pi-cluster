@@ -1,8 +1,11 @@
 Commands run during the kubernetes (k8s) raspberry pi (pi) cluster setup.
 
-This setup guide is based on this medium article: https://medium.com/nycdev/k8s-on-pi-9cc14843d43
-
 ### Setup SD card
+Ansible Playbook
+* Download *Raspbian Lite* from the [Raspbian download page](https://www.raspberrypi.org/downloads/raspbian/)
+* execute `ansible-playbook ./ansible/playbooks/setup-sd-card.yml -K -e '{"image_file_location": "/Users/aallbrig/dev/k8s-pi-cluster/ansible/files/2019-09-26-raspbian-buster-lite.img"}'`
+
+Manual
 1. Download *Raspbian Lite* from the [Raspbian download page](https://www.raspberrypi.org/downloads/raspbian/)
 1. Download *Balena Etcher* (_etcher_) from either it's [web page](https://www.balena.io/etcher/) or from your package manager of choice (e.g. brew install balenaetcher)
 1. Start etcher, select Raspbian Lite as the image to flash. Plug in a target SD card and flash with Raspbian Lite. Repeat for each SD card you want to flash.
@@ -15,6 +18,11 @@ This setup guide is based on this medium article: https://medium.com/nycdev/k8s-
 1. Find the IP address assigned to your pi by your router (via DHCP), perhaps using your router's admin page?
 
 ### Initial Setup
+---
+Ansible Playbook
+* execute `ansible-playbook ./ansible/playbooks/init-setup.yml -e '{"network_ssid": "$TARGET_SSID", "network_psk": "$TARGET_PSK"}' --ask-pass`
+
+Manual
 1. SSH into pi(s).
 1. (optional) Output raspberry pi model and it's RAM count
     ```
@@ -42,4 +50,8 @@ This setup guide is based on this medium article: https://medium.com/nycdev/k8s-
     sudo dphys-swapfile uninstall && \
     sudo update-rc.d dphys-swapfile remove
     ```
+
+### Resources
+* Manual setup inspired by this medium article: https://medium.com/nycdev/k8s-on-pi-9cc14843d43
+
 
