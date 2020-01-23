@@ -1,0 +1,24 @@
+---
+ - name: Delete taint file that indicates fresh SD card setup
+   hosts: localhost
+
+   tasks:
+     - name: Finds attached SD card
+       local_action:
+         module: shell
+         args:
+           cmd: "diskutil list external | head -n 1 | awk '{ print $1 }'"
+       register: sd_card
+     - debug: var=sd_card
+     - name: Locates SD card's mounted disk
+       local_action:
+         module: shell
+         args:
+           cmd: "df -lH | grep '/Volumes/*' | awk '{ print $9  }'"
+       register: mounted_disk
+     - debug: var=mounted_disk
+     - name: Taint file is deleted
+       local_action:
+		  module: stat
+		  path: "{{ mounted_disk.stdout }}/new-car-smell"
+		  state: absent
