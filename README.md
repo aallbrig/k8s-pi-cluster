@@ -34,6 +34,7 @@ ansible-playbook ./ansible/playbooks/init-setup.yml -e "{\"network_ssid\": \"$TA
 * Find the `MAC address` of your raspberry pi (intentionally ambiguous instruction). Once you have each pi's `MAC address`, go into your WIFI router's admin portal (intentionally ambiguous instruction), and reserve an `IP address` for each `MAC address` (intentionally ambiguous instruction).
 
     Now you know what IP address when your PI is configured on when your Raspberry PIs are on _that_ network!
+* Each network interface has it's own MAC address. `wlan0` (read: WIFI network interface) MAC address != `eth0` (read: physical ethernet connection network interface). Use `ifconfig` and search `ether ` to find MAC addresses for each network interface.
 
 ### Resources
 * Manual setup inspired by this medium article: https://medium.com/nycdev/k8s-on-pi-9cc14843d43
