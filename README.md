@@ -54,5 +54,5 @@ Manual
 
 ### Resources
 * Manual setup inspired by this medium article: https://medium.com/nycdev/k8s-on-pi-9cc14843d43
-
-
+* Jeff Geerling's [How to build your own Raspberry Pi Cluster](https://www.jeffgeerling.com/blog/2017/how-build-your-own-raspberry-pi-cluster) series. (I wish I saw this earlier!)
+* Jeff Geerling's [Raspberry Pi Dramble](https://github.com/geerlingguy/raspberry-pi-dramble) (link to the [pidramble](http://www.pidramble.com/) website) (Again, I wish I saw this earlier! I'll use the code for inspiration, especially since I recognize this github username from working with _Ansible_)
