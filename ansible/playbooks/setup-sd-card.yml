@@ -27,7 +27,7 @@
       shell:
         cmd: "diskutil unmountdisk {{ sd_card.stdout }}"
 
-    - name: Flashes SD card with Raspbian (takes a long time! ~5-10 minutes)
+    - name: Flashes SD card with Raspbian (1-3 minutes)
       become: true
       shell:
         cmd: "dd if={{ image_file_location }} of={{ sd_card.stdout | regex_replace('disk', 'rdisk') }} bs=1m"
@@ -60,6 +60,6 @@
 
     - name: Notifies playbook user that SD card setup is complete
       say:
-        msg: Setup of the S D card has been completed. S D card unmounted. Enjoy!
+        msg: S D card setup completed. S D card unmounted. Enjoy!
         voice: Zarvox
 
