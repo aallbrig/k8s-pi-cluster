@@ -17,7 +17,6 @@ This project configures a swarm of raspberry pis to run a kubernetes cluster.
 
     ansible-playbook ./ansible/playbooks/setup-sd-card.yml -K -e "{\"image_file_location\": \"$RASPIAN_FILEPATH\"}"
     ```
-* execute `ansible-playbook ./ansible/playbooks/setup-sd-card.yml -K -e '{"image_file_location": "/Users/aallbrig/dev/k8s-pi-cluster/ansible/files/2019-09-26-raspbian-buster-lite.img"}'`
 
 ### Initial Setup of Pi
 ---
