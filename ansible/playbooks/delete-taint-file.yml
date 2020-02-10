@@ -24,3 +24,8 @@
         state: absent
       when: taint_file.stat.exists
 
+    - name: Notify user that file has been terminated
+      say:
+        msg: Taint file has been terminated
+        voice: Zarvox
+
