@@ -6,8 +6,27 @@
   - name: image_file_location
     prompt: "Absolute path of desired image to flash SD card with"
     private: no
+  - name: remove_taint_file
+    prompt: "Flash SD card even if there is a taint file (y/n)?"
+    private: no
+    default: n
 
   tasks:
+    - name: Check that provided OS image exists
+      stat:
+        path: "{{ image_file_location }}"
+        get_attributes: no
+        get_checksum: no
+        get_mime: no
+      register: image_file
+
+    - fail:
+        msg: "Provided image file '{{ image_file_location }}' does not exist! One cannot flash an OS onto an SD card without the OS image..!!"
+      when: image_file.stat.exists != true
+
+    - import_tasks: ../tasks/delete-taint-file.yml
+      when: remove_taint_file.lower() in ["y", "yes"]
+
     - name: Finds attached SD card
       shell:
         cmd: "diskutil list external | head -n 1 | awk '{ print $1 }'"

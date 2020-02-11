@@ -3,30 +3,5 @@
   hosts: localhost
 
   tasks:
-    - name: Finds attached SD card
-      shell:
-        cmd: "diskutil list external | head -n 1 | awk '{ print $1 }'"
-      register: sd_card
-
-    - name: Locates SD card's mounted disk
-      shell:
-        cmd: "df -lH | grep '/Volumes/*' | awk '{ print $9  }'"
-      register: mounted_disk
-
-    - name: Find taint file
-      stat:
-        path: "{{ mounted_disk.stdout }}/new-car-smell"
-      register: taint_file
-
-    - name: Delete taint file if exists
-      file:
-        path: "{{ mounted_disk.stdout  }}/new-car-smell"
-        state: absent
-      when: taint_file.stat.exists
-
-    - name: Notify user that file has been terminated
-      say:
-        msg: Taint file has been terminated
-        voice: Zarvox
-      when: taint_file.stat.exists
+    - import_tasks: ../tasks/delete-taint-file.yml
 

@@ -10,30 +10,39 @@ This project configures a swarm of raspberry pis to run a kubernetes cluster.
 ### Setup SD card
 ---
 * Download *Raspbian Lite* from the [Raspbian download page](https://www.raspberrypi.org/downloads/raspbian/) to a folder on your file system
+
+    _Note: I downloaded my copy of the image into a folder in this repo, then `.gitignore`d it when I realized VCSing a large file isn't very cool. Feel free to download and extract your copy of raspbian lite to `./ansible/files`_
+
 * From the following snippet, update the image path (if applicable) and then execute.
 
     ```bash
     RASPIAN_FILEPATH="$(pwd)/ansible/files/2019-09-26-raspbian-buster-lite.img"
 
-    ansible-playbook ./ansible/playbooks/setup-sd-card.yml -K -e "{\"image_file_location\": \"$RASPIAN_FILEPATH\"}"
+    ansible-playbook ./ansible/playbooks/setup-sd-card.yml -K -e "{\"image_file_location\": \"$RASPIAN_FILEPATH\", \"remove_taint_file\": \"no\"}"
     ```
+
+    _Note: Update `remove_taint_file` from `"no"` to `"yes"` if you are reflashing an SD card you have already flashed._
 
 ### Initial Setup of Pi
 ---
-Modify and execute below snippet:
+* Insert SD cards into your PIs
+* Connect ethernet cables to your PIs
+* Modify and execute below snippet:
 
-```bash
-TARGET_SSID=''
-TARGET_PSK=''
+  ```bash
+  TARGET_SSID=''
+  TARGET_PSK=''
 
-ansible-playbook ./ansible/playbooks/init-setup.yml -e "{\"network_ssid\": \"$TARGET_SSID\", \"network_psk\": \"$TARGET_PSK\"}" --ask-pass`
-```
+  ansible-playbook ./ansible/playbooks/init-setup.yml -e "{\"network_ssid\": \"$TARGET_SSID\", \"network_psk\": \"$TARGET_PSK\"}" --ask-pass`
+  ```
+* Disconnect the ethernet cables
 
 ### Tips
 * Find the `MAC address` of your raspberry pi (intentionally ambiguous instruction). Once you have each pi's `MAC address`, go into your WIFI router's admin portal (intentionally ambiguous instruction), and reserve an `IP address` for each `MAC address` (intentionally ambiguous instruction).
 
     Now you know what IP address when your PI is configured on when your Raspberry PIs are on _that_ network!
-* Each network interface has it's own MAC address. `wlan0` (read: WIFI network interface) MAC address != `eth0` (read: physical ethernet connection network interface). Use `ifconfig` and search `ether ` to find MAC addresses for each network interface.
+* Each network interface has it's own MAC address (violating the "1 device, 1 mac address" simplification). `wlan0` (read: the WIFI network interface) MAC address != `eth0` (read: the physical ethernet connection network interface). Use `ifconfig` (or `ip` tool) and search `ether ` to find MAC addresses for each network interface.
+* CAPS LOCK IS CRUISE CONTROL FOR COOL. This isn't applicable advice for this project but it is something to know.
 
 ### Resources
 * Manual setup inspired by this medium article: https://medium.com/nycdev/k8s-on-pi-9cc14843d43
