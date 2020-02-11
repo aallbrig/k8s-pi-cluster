@@ -28,4 +28,5 @@
       say:
         msg: Taint file has been terminated
         voice: Zarvox
+      when: taint_file.stat.exists
 
