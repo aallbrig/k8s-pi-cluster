@@ -1,0 +1,7 @@
+---
+- name: Update WPA config with ISO country code
+  become: true
+  lineinfile:
+    path: /etc/wpa_supplicant/wpa_supplicant.conf
+    regexp: '^country='
+    line: "country={{ desired_iso_country }}"

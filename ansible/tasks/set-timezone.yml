@@ -1,0 +1,5 @@
+---
+- name: Sets desired timezone
+  become: true
+  timezone:
+    name: "{{ desired_timezone }}"

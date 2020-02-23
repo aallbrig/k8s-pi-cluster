@@ -1,0 +1,32 @@
+---
+# locale values can be found in /usr/share/i18n/SUPPORTED
+- set_fact:
+    desired_locale_full: "{{ desired_locale }}.{{ desired_encoding }} {{ desired_encoding }}"
+
+- name: Unsets default GB locale
+  become: true
+  replace:
+    path: /etc/locale.gen
+    regexp: "^en_GB.UTF-8 UTF-8"
+    replace: "# en_GB.UTF-8 UTF-8"
+
+- name: Sets target locale to generate locale files from
+  become: true
+  replace:
+    path: /etc/locale.gen
+    regexp: '# {{ desired_locale_full  }}'
+    replace: "{{ desired_locale_full }}"
+  register: local_gen_config
+
+- name: Regenerates locale files
+  become: true
+  shell: dpkg-reconfigure -f noninteractive locales
+  when: local_gen_config.changed
+
+- name: Sets the default locale
+  become: true
+  blockinfile:
+    path: /etc/default/locale
+    block: |
+      LANG={{ desired_locale }}.{{ desired_encoding }}
+      LANGUAGE={{ desired_locale }}:{{ desired_language }}

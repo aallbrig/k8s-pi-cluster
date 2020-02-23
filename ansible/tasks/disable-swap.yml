@@ -1,0 +1,16 @@
+---
+- name: Check if swap needs to be disabled
+  become: true
+  shell: swapon --summary
+  register: swap_check
+
+- name: Disables swap
+  become: true
+  block:
+    - name: swapoff
+      shell: dphys-swapfile swapoff
+    - name: uninstall
+      shell: dphys-swapfile uninstall
+    - name: swapfile remove
+      shell: update-rc.d dphys-swapfile remove
+  when: swap_check.stdout != ""

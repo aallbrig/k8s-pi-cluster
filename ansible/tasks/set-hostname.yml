@@ -1,0 +1,18 @@
+---
+- name: Check if host name needs to be updated
+  shell: cat /etc/hostname
+  register: out_hostname
+
+- name: Sets host name to desired host name
+  block:
+    - name: Replaces current host name with desired host name
+      become: true
+      shell: "echo {{ desired_hostname }} > /etc/hostname"
+
+    - name: Update hosts file to link 127.0.1.1 to the desired host name
+      become: true
+      replace:
+        path: /etc/hosts
+        regexp: "^127.0.1.1.*{{ out_hostname.stdout }}"
+        replace: "127.0.1.1\t{{ desired_hostname }}"
+  when: out_hostname.stdout != desired_hostname
