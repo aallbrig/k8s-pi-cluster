@@ -1,7 +1,0 @@
----
-- name: Delete taint file that indicates fresh SD card setup
-  hosts: localhost
-
-  tasks:
-    - import_tasks: ../tasks/delete-taint-file.yml
-
