@@ -1,10 +1,11 @@
 ---
 - name: k3s setup
-  hosts: masters
+  hosts: k8s-masters
 
   tasks:
-    - name: test ping
-      ping:
+    - set_fact:
+        k8s_pi_cluster_home: "~/.k8s-pi-cluster"
+        ip_address: "{{ hostvars[inventory_hostname]['ansible_env'].             SSH_CONNECTION.split(' ')[2] }}"
     - name: Check if we need to install k3s
       become: true
       stat:
@@ -12,18 +13,31 @@
       register: out_node_token_file
     - name: Install k3s
       block:
-        - name: Install k8s via shell method
+        - name: Install k3s via shell method
           shell: curl -sfL https://get.k3s.io | sh -s - --write-kubeconfig-mode 644
       when: out_node_token_file.stat.exists != true
-    - name: Get node token
+    - name: Create k8s pi cluster in users home directory
+      file:
+        path: "{{ k8s_pi_cluster_home }}"
+        state: directory
+      delegate_to: localhost
+    - name: Get the master(s) node token file
       become: true
-      shell: cat /var/lib/rancher/k3s/server/node-token
-      register: out_node_token
-    - name: output node token
-      debug: var=out_node_token.stdout
+      fetch:
+        src: /var/lib/rancher/k3s/server/node-token
+        dest: "{{ k8s_pi_cluster_home }}/{{ ip_address }}-node-token"
+        mode: "0740"
+        flat: true
+    - name: Get the k8s kubeconfig file from master
+      become: true
+      fetch:
+        src: /etc/rancher/k3s/k3s.yaml
+        dest: "{{ k8s_pi_cluster_home }}/{{ ip_address }}-kubeconfig.yml"
+        mode: "0740"
+        flat: true
 
 - name: Configure workers
-  hosts: workers
+  hosts: k8s-workers
 
   vars_prompt:
     - name: k3s_url
@@ -33,8 +47,6 @@
       prompt: What is the token from the master node of k3s?
 
   tasks:
-    - debug: var=k3s_token
-    - debug: var=k3s_url
     - name: Check if k3s needs to be installed
       stat:
         path: /usr/local/bin/k3s-uninstall.sh

@@ -37,6 +37,24 @@ This project configures a swarm of raspberry pis to run a kubernetes cluster.
   ```
 * Disconnect the ethernet cables
 
+### Setup Kubernetes
+* Execute playbook...
+
+    ``` bash
+    ansible-playbook ./ansible/playbooks/setup-k3s.yml -vv
+    ```
+* The server needs to point at the IP address of a master node
+* The node token will be in `~/.k8s-pi-cluster` directory
+
+    ``` bash
+    cat ~/.k8s-pi-cluster/192.168.8.200-node-token | pbcopy
+    ```
+* Test connection with k8s cluster by running...
+    ``` bash
+    KUBECONFIG="${HOME}/.k8s-pi-cluster/192.168.8.200-kubeconfig.yml" kubectl get pods --all-namespaces
+    ```
+
+
 ### Tips
 * Find the `MAC address` of your raspberry pi (intentionally ambiguous instruction). Once you have each pi's `MAC address`, go into your WIFI router's admin portal (intentionally ambiguous instruction), and reserve an `IP address` for each `MAC address` (intentionally ambiguous instruction).
 
