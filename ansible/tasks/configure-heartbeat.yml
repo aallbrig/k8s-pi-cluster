@@ -1,13 +1,13 @@
 ---
-# TODO: Get this working ^^
-# https://www.raspberrypi.org/documentation/linux/usage/cron.md
-# maybe...
-# @reboot sh /home/pi/make-red-led-a-heartbeat.sh
-- name: Ensure /sys/class/leds/led0/trigger is attached to heartbeat
+- name: Configure red onboard LED to display as a heartbeat
+  become: true
   lineinfile:
-    path: /sys/class/leds/led0/trigger
-    regexp: '\[heartbeat\]'
-    state: absent
-  check_mode: true
-  changed_when: false
-  register: onboard_red_led
+    line: "{{ item }}"
+    dest: /boot/config.txt
+    regexp: "^{{ item }}"
+  with_items:
+    - dtparam=pwr_led_trigger=heartbeat
+    - dtparam=act_led_trigger=mmc0
+  notify:
+    - reboot
+- meta: flush_handlers
