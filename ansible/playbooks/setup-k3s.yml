@@ -5,7 +5,7 @@
   tasks:
     - set_fact:
         k8s_pi_cluster_home: "~/.k8s-pi-cluster"
-        ip_address: "{{ hostvars[inventory_hostname]['ansible_env'].             SSH_CONNECTION.split(' ')[2] }}"
+        host_ip_address: "{{ hostvars[inventory_hostname]['ansible_env'].SSH_CONNECTION.split(' ')[2] }}"
     - name: Check if we need to install k3s
       become: true
       stat:
@@ -25,34 +25,51 @@
       become: true
       fetch:
         src: /var/lib/rancher/k3s/server/node-token
-        dest: "{{ k8s_pi_cluster_home }}/{{ ip_address }}-node-token"
+        dest: "{{ k8s_pi_cluster_home }}/{{ host_ip_address }}-node-token"
         mode: "0740"
         flat: true
     - name: Get the k8s kubeconfig file from master
       become: true
       fetch:
         src: /etc/rancher/k3s/k3s.yaml
-        dest: "{{ k8s_pi_cluster_home }}/{{ ip_address }}-kubeconfig.yml"
+        dest: "{{ k8s_pi_cluster_home }}/{{ host_ip_address }}-kubeconfig.yml"
         mode: "0740"
         flat: true
+    - name: Replace 127.0.0.1 with host IP
+      replace:
+        path: "{{ k8s_pi_cluster_home }}/{{ host_ip_address }}-kubeconfig.yml"
+        regexp: "127.0.0.1"
+        replace: "{{ host_ip_address }}"
+      delegate_to: localhost
 
 - name: Configure workers
   hosts: k8s-workers
 
-  vars_prompt:
-    - name: k3s_url
-      prompt: What is the URL of the master node of k3s (e.g. https://myserver:6443)?
-      private: false
-    - name: k3s_token
-      prompt: What is the token from the master node of k3s?
-
   tasks:
+    - set_fact:
+        k3s_url: https://192.168.8.200:6443
+        k8s_pi_cluster_home: "~/.k8s-pi-cluster"
+    - set_fact:
+        node_token_files:
+          - "{{ k8s_pi_cluster_home }}/192.168.8.200-node-token"
+
     - name: Check if k3s needs to be installed
       stat:
         path: /usr/local/bin/k3s-uninstall.sh
-      register: uninstall_script_stat
-    - name: Install k3s for workers, if required
+      register: k3s_uninstall_script
+    - name: Install k3s for workers
       block:
+        - name: Create pi cluster home
+          file:
+            path: "{{ k8s_pi_cluster_home }}"
+            state: directory
+            mode: "0740"
+        - name: Copy up node_token file(s)
+          copy:
+            src: "{{ item }}"
+            dest: "{{ item }}"
+            mode: "0740"
+          with_items: "{{ node_token_files }}"
         - name: Install k3s for workers
-          shell: "curl -sfL https://get.k3s.io | K3S_URL={{ k3s_url }} K3S_TOKEN={{ k3s_token }} sh -"
-      when: uninstall_script_stat.stat.exists != true
+          shell: "curl -sfL https://get.k3s.io | K3S_URL={{ k3s_url }} K3S_TOKEN=\"$(cat /home/pi/.k8s-pi-cluster/192.168.8.200-node-token)\" sh -"
+      when: k3s_uninstall_script.stat.exists != true
