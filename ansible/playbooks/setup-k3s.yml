@@ -70,6 +70,16 @@
             dest: "{{ item }}"
             mode: "0740"
           with_items: "{{ node_token_files }}"
+        # TODO: Check if k3s has already been installed on the node
         - name: Install k3s for workers
           shell: "curl -sfL https://get.k3s.io | K3S_URL={{ k3s_url }} K3S_TOKEN=\"$(cat /home/pi/.k8s-pi-cluster/192.168.8.200-node-token)\" sh -"
+          async: 1000
+          poll: 0
+          register: k3s_worker_setup
+        - name: Check on status
+          async_status:
+            jid: "{{ k3s_worker_setup.ansible_job_id }}"
+          register: k3s_worker_setup_job_result
+          until: k3s_worker_setup_job_result.finished
+          retries: 60
       when: k3s_uninstall_script.stat.exists != true
