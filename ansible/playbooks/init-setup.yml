@@ -45,6 +45,7 @@
         network_ssid: "{{ network_ssid }}"
         network_psk: "{{ network_psk }}"
     - import_tasks: ../tasks/configure-heartbeat.yml
+    - import_tasks: ../tasks/rotate-lcd-screen.yml
     - import_tasks: ../tasks/add-ssh-authorized-key.yml
     - import_tasks: ../tasks/delete-pi-user-password.yml
 

@@ -1,0 +1,12 @@
+---
+- name: Rotate LCD screen using boot config file
+  become: true
+  lineinfile:
+    line: "{{ item }}"
+    dest: /boot/config.txt
+    regexp: "^{{ item }}"
+  with_items:
+    - lcd_rotate=2
+  notify:
+    - reboot
+- meta: flush_handlers
