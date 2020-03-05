@@ -16,6 +16,7 @@
 
   tasks:
     - import_tasks: ../tasks/resize-root-filesystem.yml
+    - import_tasks: ../tasks/update-upgrade.yml
     - import_tasks: ../tasks/set-hostname.yml
     - import_tasks: ../tasks/set-timezone.yml
       vars:
@@ -44,8 +45,12 @@
       vars:
         network_ssid: "{{ network_ssid }}"
         network_psk: "{{ network_psk }}"
-    - import_tasks: ../tasks/configure-heartbeat.yml
-    - import_tasks: ../tasks/rotate-lcd-screen.yml
+    - name: boot/config related tasks
+      block:
+        - import_tasks: ../tasks/configure-heartbeat.yml
+        - import_tasks: ../tasks/rotate-lcd-screen.yml
+        - meta: flush_handlers
+
     - import_tasks: ../tasks/add-ssh-authorized-key.yml
     - import_tasks: ../tasks/delete-pi-user-password.yml
 

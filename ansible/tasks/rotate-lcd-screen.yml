@@ -9,4 +9,3 @@
     - lcd_rotate=2
   notify:
     - reboot
-- meta: flush_handlers

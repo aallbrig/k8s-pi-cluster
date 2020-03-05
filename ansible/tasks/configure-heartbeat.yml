@@ -10,4 +10,3 @@
     - dtparam=act_led_trigger=mmc0
   notify:
     - reboot
-- meta: flush_handlers
