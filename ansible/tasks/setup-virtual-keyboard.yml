@@ -1,0 +1,7 @@
+---
+- name: Install virtual keyboard (for touchscreen)
+  become: true
+  apt:
+    name: matchbox-keyboard
+  notify:
+    - reboot

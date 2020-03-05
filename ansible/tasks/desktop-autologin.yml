@@ -1,0 +1,23 @@
+---
+- name: Check that lightdm exists
+  become: true
+  stat:
+    path: /etc/init.d/lightdm
+  register: lightdm
+- name: If lightdm exists
+  become: true
+  block:
+    - name: Systemctl set default graphical.target
+      shell:
+        cmd: systemctl set-default graphical.target
+    - name: Symlink service
+      shell:
+        cmd: ln -fs /lib/systemd/system/getty@.service /etc/systemd/system/getty.target.wants/getty@tty1.service
+    - name: Update autologin user for LightDM configuration
+      replace:
+        path: /etc/lightdm/lightdm.conf
+        regexp: "^(#|)autologin-user=.*"
+        replace: "autologin-user=pi"
+      notify:
+        - reboot
+  when: lightdm.stat.exists == true

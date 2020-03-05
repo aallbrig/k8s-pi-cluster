@@ -1,0 +1,13 @@
+---
+# Docs: https://www.raspberrypi.org/documentation/hardware/display/
+- name: Configure pi for the 7" 800x480 Touchscreen
+  become: true
+  lineinfile:
+    line: "{{ item }}"
+    dest: /boot/config.txt
+    regexp: "^{{ item }}"
+  with_items:
+    - dtparam=touchscreen-size-x=800
+    - dtparam=touchscreen-size-y=480
+  notify:
+    - reboot

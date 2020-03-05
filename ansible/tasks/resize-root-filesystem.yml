@@ -14,5 +14,4 @@
     - name: Check if the file exists after raspi-config proc
       stat:
         path: /etc/init.d/resize2fs_once
-    - meta: flush_handlers
   when: created_file_from_expand_rootfs.stat.exists != true

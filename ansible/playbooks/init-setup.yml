@@ -15,8 +15,6 @@
     setup_static_ip_wlan0: false
 
   tasks:
-    - import_tasks: ../tasks/resize-root-filesystem.yml
-    - import_tasks: ../tasks/update-upgrade.yml
     - import_tasks: ../tasks/set-hostname.yml
     - import_tasks: ../tasks/set-timezone.yml
       vars:
@@ -27,7 +25,6 @@
         desired_encoding: UTF-8
         desired_language: en
     - import_tasks: ../tasks/disable-swap.yml
-    - import_tasks: ../tasks/configure-c-groups.yml
     - import_tasks: ../tasks/set-static-ip-eth0.yml
       when: setup_static_ip_eth0 == true
       vars:
@@ -49,7 +46,18 @@
       block:
         - import_tasks: ../tasks/configure-heartbeat.yml
         - import_tasks: ../tasks/rotate-lcd-screen.yml
-        - meta: flush_handlers
+        - import_tasks: ../tasks/setup-touchscreen.yml
+
+    - import_tasks: ../tasks/resize-root-filesystem.yml
+    - meta: flush_handlers
+
+    - import_tasks: ../tasks/update-upgrade.yml
+    - meta: flush_handlers
+
+    - import_tasks: ../tasks/configure-desktop-environment.yml
+    - import_tasks: ../tasks/setup-virtual-keyboard.yml
+    - import_tasks: ../tasks/desktop-autologin.yml
+    - meta: flush_handlers
 
     - import_tasks: ../tasks/add-ssh-authorized-key.yml
     - import_tasks: ../tasks/delete-pi-user-password.yml

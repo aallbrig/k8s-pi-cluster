@@ -7,7 +7,5 @@
   become: true
   apt:
     upgrade: dist
-- name: Reboot (usually) required
-  ping:
   notify:
     - reboot

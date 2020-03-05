@@ -1,0 +1,45 @@
+---
+# Thanks https://raspberrytips.com/upgrade-raspbian-lite-to-desktop/
+- set_fact:
+    install_pixel: true
+    install_kde: false
+    install_lxde: false
+    install_xfce: false
+    install_mate: false
+- name: Install Xorg
+  become: true
+  apt:
+    name: xserver-xorg
+- name: Install Desktop Environment
+  become: true
+  block:
+    - name: Install PIXEL desktop
+      apt:
+        name: raspberrypi-ui-mods
+      when: install_pixel  == true
+    - name: Install KDE desktop
+      apt:
+        name: kde-plasma-desktop
+      when: install_kde  == true
+    - name: Install LXDE desktop
+      apt:
+        pkg:
+          - lxde-core
+          - lxappearance
+      when: install_lxde  == true
+    - name: Install XFCE desktop
+      apt:
+        pkg:
+          - xfce4
+          - xfce4-terminal
+      when: install_lxde  == true
+    - name: Install MATE desktop
+      apt:
+        name: mate-desktop-environment-core
+      when: install_mate  == true
+- name: Install LightDM
+  become: true
+  apt:
+    name: lightdm
+  notify:
+    - reboot
