@@ -15,7 +15,6 @@
     setup_static_ip_wlan0: false
 
   tasks:
-    - import_tasks: ../tasks/set-hostname.yml
     - import_tasks: ../tasks/set-timezone.yml
       vars:
         desired_timezone: US/Eastern
@@ -42,11 +41,18 @@
       vars:
         network_ssid: "{{ network_ssid }}"
         network_psk: "{{ network_psk }}"
-    - name: boot/config related tasks
+    - import_tasks: ../tasks/configure-heartbeat.yml
+
+    # TODO: detect if touchscreen in installed
+    # - name: Detects if touchscreen is installed
+    # shell:
+    #   cmd:
+    # register: touchscreen_detect
+    - name: touchscreen setup
       block:
-        - import_tasks: ../tasks/configure-heartbeat.yml
         - import_tasks: ../tasks/rotate-lcd-screen.yml
         - import_tasks: ../tasks/setup-touchscreen.yml
+    #  when: touchscreen_detect # TODO fill in logic here
 
     - import_tasks: ../tasks/resize-root-filesystem.yml
     - meta: flush_handlers
@@ -57,6 +63,7 @@
     - import_tasks: ../tasks/configure-desktop-environment.yml
     - import_tasks: ../tasks/setup-virtual-keyboard.yml
     - import_tasks: ../tasks/desktop-autologin.yml
+    - import_tasks: ../tasks/set-hostname.yml
     - meta: flush_handlers
 
     - import_tasks: ../tasks/add-ssh-authorized-key.yml
