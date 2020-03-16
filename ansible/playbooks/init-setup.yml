@@ -43,16 +43,16 @@
         network_psk: "{{ network_psk }}"
     - import_tasks: ../tasks/configure-heartbeat.yml
 
-    # TODO: detect if touchscreen in installed
-    # - name: Detects if touchscreen is installed
-    # shell:
-    #   cmd:
-    # register: touchscreen_detect
+    - name: Detects if touchscreen is installed
+      shell:
+        cmd: dmesg | grep -i ft5406
+      register: touchscreen_detect
+
     - name: touchscreen setup
       block:
         - import_tasks: ../tasks/rotate-lcd-screen.yml
         - import_tasks: ../tasks/setup-touchscreen.yml
-    #  when: touchscreen_detect # TODO fill in logic here
+      when: touchscreen_detect.stdout != ""
 
     - import_tasks: ../tasks/resize-root-filesystem.yml
     - meta: flush_handlers
