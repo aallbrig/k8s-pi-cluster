@@ -35,6 +35,8 @@ This project configures a swarm of raspberry pis to run a kubernetes cluster.
 
   ansible-playbook ./ansible/playbooks/initial-pi-configuration.yml -e "{\"network_ssid\": \"$TARGET_SSID\", \"network_psk\": \"$TARGET_PSK\"}" --ask-pass
   ```
+
+  After the initial run, you can drop the `--ask-pass` part of the snippet above to rerun this playbook without having to have the network cable attached to the pi.
 * (optional) If you have a raspberry pi with a touchscreen installed, you can run this playbook to configure the touchscreen. This can be done over the network cables or over wifi.
   ```bash
   ansible-playbook ./ansible/playbooks/setup-pi-touchscreens.yml

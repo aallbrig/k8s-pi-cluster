@@ -1,6 +1,6 @@
 ---
 - name: Initial setup of raspberry pi
-  hosts: setup_required
+  hosts: all
 
   vars_prompt:
     - name: network_ssid
