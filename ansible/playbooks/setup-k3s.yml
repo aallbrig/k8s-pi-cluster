@@ -1,6 +1,6 @@
 ---
 - name: k3s setup
-  hosts: k8s-masters
+  hosts: k8s_masters
 
   tasks:
     - set_fact:
@@ -43,7 +43,7 @@
       delegate_to: localhost
 
 - name: Configure workers
-  hosts: k8s-workers
+  hosts: k8s_workers
 
   tasks:
     - set_fact:

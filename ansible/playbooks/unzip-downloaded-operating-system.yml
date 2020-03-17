@@ -25,4 +25,3 @@
         args:
           cmd: "unzip {{ zip_location }} -d {{ playbook_dir   }}/../files"
       when: raspbian_lite_img.stat.exists == false
-
