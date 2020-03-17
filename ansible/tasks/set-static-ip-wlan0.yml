@@ -1,10 +1,10 @@
 ---
-- name: Update DHCPCD to assign static IP on eth0
+- name: Update DHCPCD to assign static IP on wlan0
   become: true
   blockinfile:
     path: /etc/dhcpcd.conf
     block: |
       interface wlan0
       static ip_address={{ first_3_octets }}.{{ last_octet }}/24
-      static routers={{ first_3_octets  }}.1
+      static routers={{ first_3_octets }}.1
       static domain_name_servers=8.8.8.8
