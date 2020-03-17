@@ -71,14 +71,4 @@
     - import_tasks: ../tasks/delete-pi-user-password.yml
 
   handlers:
-    - name: reboot
-      become: true
-      shell: "sleep 1 && shutdown -r now +1"
-      async: 1
-      poll: 0
-      notify:
-        - wait for reboot
-    - name: wait for reboot
-      wait_for_connection:
-        delay: 5
-        timeout: 300
+    - import_tasks: ../handlers/reboot.yml
