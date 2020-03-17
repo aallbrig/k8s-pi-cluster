@@ -47,6 +47,7 @@
       shell:
         cmd: dmesg | grep -i ft5406
       register: touchscreen_detect
+      ignore_errors: true
 
     - name: touchscreen setup
       block:
