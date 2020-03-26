@@ -5,27 +5,20 @@
   vars_prompt:
   - name: image_file_location
     prompt: "Absolute path of desired image to flash SD card with"
-    private: no
-  - name: remove_taint_file
-    prompt: "Flash SD card even if there is a taint file (y/n)?"
-    private: no
-    default: n
+    private: false
 
   tasks:
     - name: Check that provided OS image exists
       stat:
         path: "{{ image_file_location }}"
-        get_attributes: no
-        get_checksum: no
-        get_mime: no
+        get_attributes: false
+        get_checksum: false
+        get_mime: false
       register: image_file
 
     - fail:
         msg: "Provided image file '{{ image_file_location }}' does not exist! One cannot flash an OS onto an SD card without the OS image..!!"
       when: image_file.stat.exists != true
-
-    - import_tasks: ../tasks/delete-taint-file.yml
-      when: remove_taint_file.lower() in ["y", "yes"]
 
     - name: Finds attached SD card
       shell:
@@ -37,11 +30,6 @@
         cmd: "df -lH | grep '/Volumes/*' | awk '{ print $9  }'"
       register: mounted_disk
 
-    - name: Checks for initial setup taint file
-      stat:
-        path: "{{ mounted_disk.stdout }}/new-car-smell"
-      register: taint_file_check
-
     - name: Unmounts automatically mounted SD card (levelset)
       shell:
         cmd: "diskutil unmountdisk {{ sd_card.stdout }}"
@@ -52,7 +40,6 @@
         cmd: "dd if={{ image_file_location }} of={{ sd_card.stdout | regex_replace('disk', 'rdisk') }} bs=1m"
       async: 1600
       poll: 10
-      when: taint_file_check.stat.exists == false
 
     - name: Mounts the disk from flashed SD card
       shell:
@@ -66,11 +53,6 @@
     - name: Touches a "ssh" file
       file:
         path: "{{ mounted_disk.stdout }}/ssh"
-        state: touch
-
-    - name: Creates taint file
-      file:
-        path: "{{ mounted_disk.stdout  }}/new-car-smell"
         state: touch
 
     - name: Unmounts SD card

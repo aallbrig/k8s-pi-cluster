@@ -18,10 +18,8 @@ This project configures a swarm of raspberry pis to run a kubernetes cluster.
     ```bash
     RASPIAN_FILEPATH="$(pwd)/ansible/files/2019-09-26-raspbian-buster-lite.img"
 
-    ansible-playbook ./ansible/playbooks/setup-sd-card.yml -K -e "{\"image_file_location\": \"$RASPIAN_FILEPATH\", \"remove_taint_file\": \"no\"}"
+    ansible-playbook ./ansible/playbooks/setup-sd-card.yml -K -e "{\"image_file_location\": \"$RASPIAN_FILEPATH\"}"
     ```
-
-    _Note: Update `remove_taint_file` from `"no"` to `"yes"` if you are reflashing an SD card you have already flashed._ This feature was added because I wound up reflashing SD cards a few times ^^
 
 ### Initial Setup of Pi
 ---
