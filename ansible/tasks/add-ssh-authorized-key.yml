@@ -1,5 +1,5 @@
 ---
-- name: Set authorized key for user ubuntu copying it from current user
+- name: Set authorized key for user pi copying it from current user
   authorized_key:
     user: pi
     state: present
