@@ -34,13 +34,16 @@
       vars:
         first_3_octets: "{{ first_3_octets }}"
         last_octet: "{{ last_octet }}"
-    - import_tasks: ../tasks/set-wifi-country.yml
-      vars:
-        desired_iso_country: US
-    - import_tasks: ../tasks/connect-to-wifi.yml
-      vars:
-        network_ssid: "{{ network_ssid }}"
-        network_psk: "{{ network_psk }}"
+    - block:
+        - import_tasks: ../tasks/set-wifi-country.yml
+          vars:
+            desired_iso_country: US
+        - import_tasks: ../tasks/connect-to-wifi.yml
+          vars:
+            network_ssid: "{{ network_ssid }}"
+            network_psk: "{{ network_psk }}"
+      when: network_ssid is defined and network_psk is defined
+
     - import_tasks: ../tasks/configure-heartbeat.yml
 
     - import_tasks: ../tasks/resize-root-filesystem.yml

@@ -17,8 +17,10 @@ This project configures a swarm of raspberry pis to run a kubernetes cluster.
 
     ```bash
     RASPIAN_FILEPATH="$(pwd)/ansible/files/2019-09-26-raspbian-buster-lite.img"
+    TARGET_SSID=''
+    TARGET_PSK=''
 
-    ansible-playbook ./ansible/playbooks/setup-sd-card.yml -K -e "{\"image_file_location\": \"$RASPIAN_FILEPATH\"}"
+    ansible-playbook ./ansible/playbooks/setup-sd-card.yml -K -e "{\"image_file_location\": \"$RASPIAN_FILEPATH\", \"network_ssid\": \"$TARGET_SSID\", \"network_psk\": \"$TARGET_PSK\"}"
     ```
 
 ### Initial Setup of Pi
@@ -28,10 +30,10 @@ This project configures a swarm of raspberry pis to run a kubernetes cluster.
 * Modify and execute below snippet:
 
   ```bash
-  TARGET_SSID=''
-  TARGET_PSK=''
-
-  ansible-playbook ./ansible/playbooks/initial-pi-configuration.yml -e "{\"network_ssid\": \"$TARGET_SSID\", \"network_psk\": \"$TARGET_PSK\"}" --ask-pass
+  # First time configuration
+  ansible-playbook ansible/playbooks/initial-pi-configuration.yml -e '{"ansible_user": "pi", "ansible_connection": "paramiko"}' --ask-pass -vv
+  # Rerun after first run
+  ansible-playbook ansible/playbooks/initial-pi-configuration.yml -vv
   ```
 
   After the initial run, you can drop the `--ask-pass` part of the snippet above to rerun this playbook without having to have the network cable attached to the pi.

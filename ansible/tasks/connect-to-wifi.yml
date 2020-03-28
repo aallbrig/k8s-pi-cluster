@@ -1,8 +1,13 @@
 ---
+- set_fact:
+    filepath: /etc/wpa_supplicant/wpa_supplicant.conf
+  when: filepath is not defined
 - name: Setup pi onto target network
   become: true
   blockinfile:
-    path: /etc/wpa_supplicant/wpa_supplicant.conf
+    path: "{{ filepath }}"
+    marker_begin: NETWORK_CREDENTIALS
+    marker_end: NETWORK_CREDENTIALS
     block: |
       network={
         ssid="{{ network_ssid }}"

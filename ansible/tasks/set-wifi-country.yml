@@ -1,7 +1,13 @@
 ---
+- set_fact:
+    filepath: /etc/wpa_supplicant/wpa_supplicant.conf
+  when: filepath is not defined
+- set_fact:
+    desired_iso_country: US
+  when: desired_iso_country is not defined
 - name: Update WPA config with ISO country code
   become: true
   lineinfile:
-    path: /etc/wpa_supplicant/wpa_supplicant.conf
+    path: "{{ filepath }}"
     regexp: '^country='
     line: "country={{ desired_iso_country }}"

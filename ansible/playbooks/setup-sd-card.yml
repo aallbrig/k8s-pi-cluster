@@ -6,6 +6,12 @@
   - name: image_file_location
     prompt: "Absolute path of desired image to flash SD card with"
     private: false
+  - name: network_ssid
+    prompt: "What is the wifi network name (SSID)?"
+    private: false
+  - name: network_psk
+    prompt: "What is the wifi network password (PSK)?"
+
 
   tasks:
     - name: Check that provided OS image exists
@@ -45,15 +51,34 @@
       shell:
         cmd: "diskutil mountDisk {{ sd_card.stdout }}"
 
-    - name: Locates mounted disk
+    - name: Locates mounted S.D. card
       shell:
         cmd: "df -lH | grep '/Volumes/*' | awk '{ print $9  }'"
-      register: mounted_disk
+      register: mounted_sd_card
 
-    - name: Touches a "ssh" file
-      file:
-        path: "{{ mounted_disk.stdout }}/ssh"
-        state: touch
+    - name: Fail if no S.D. cards are located
+      fail:
+        msg: No S.D. cards detected
+      when: mounted_sd_card is not defined
+
+    - include_tasks: ../tasks/touch-ssh.yml
+      vars:
+        folder: "{{ mounted_sd_card.stdout }}"
+    - include_tasks: ../tasks/touch-wpa-supplicant-config-file.yml
+      vars:
+        folder: "{{ mounted_sd_card.stdout }}"
+
+    - block:
+        - import_tasks: ../tasks/set-wifi-country.yml
+          vars:
+            desired_iso_country: US
+            filepath: "{{ mounted_sd_card.stdout }}/wpa_supplicant.conf"
+        - import_tasks: ../tasks/connect-to-wifi.yml
+          vars:
+            network_ssid: "{{ network_ssid }}"
+            network_psk: "{{ network_psk }}"
+            filepath: "{{ mounted_sd_card.stdout }}/wpa_supplicant.conf"
+      when: network_ssid != "" and network_psk != ""
 
     - name: Unmounts SD card
       shell:

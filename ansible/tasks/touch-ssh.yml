@@ -1,0 +1,8 @@
+---
+- fail:
+    msg: No folder passed into task
+  when: folder is not defined
+- name: Touches a "ssh" file
+  file:
+    path: "{{ folder }}/ssh"
+    state: touch

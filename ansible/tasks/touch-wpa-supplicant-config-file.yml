@@ -1,0 +1,21 @@
+---
+- fail:
+    msg: No folder passed into task
+  when: folder is not defined
+- set_fact:
+    filepath: "{{ folder }}/wpa_supplicant.conf"
+
+- name: Touches a "wpa_supplicant.conf" file
+  file:
+    path: "{{ filepath }}"
+    state: touch
+
+- name: Setup required "wpa_supplicant.conf" lines
+  become: true
+  blockinfile:
+    path: "{{ filepath }}"
+    marker_begin: REQUIRED_LINES
+    marker_end: REQUIRED_LINES
+    block: |
+      ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+      update_config=1
